@@ -5,7 +5,7 @@
   "main": "built/encoder.js",
   "typings": "built/encoder.d.ts",
   "scripts": {
-    "postinstall": "npm run build",
+    "postinstall": "tsd install && npm run build",
     "build": "tsc -p .",
     "test": "mocha built/"
   },
