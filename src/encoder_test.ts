@@ -129,6 +129,13 @@ describe('mapEncoder', () => {
         })
     })
 
+    describe('problems', ()=>{
+        it('returns nothing when file text is empty',()=>{
+            let map = encoder.deserialize('');
+            assert.isNull(map);
+        })
+    })
+
 });
 class Thing {
     constructor(public id?: number, public xname?: string) {

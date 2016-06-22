@@ -68,6 +68,10 @@ export function serializeToFile<K, V>(filePath: string, map: Map<K, V>): Promise
 }
 
 export function deserialize<K, V>(json: string): Map<K, V> {
+    if(!json || json.replace(/\b+/,'')) {
+        console.warn('WARNING: empty json'); 
+        return null 
+    };
     return toMap<K>(JSON.parse(json));
 }
 
