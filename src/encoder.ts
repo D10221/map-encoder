@@ -58,25 +58,36 @@ export function serializeToFile<K, V>(filePath: string, map: Map<K, V>): Promise
         fs.writeFile(
             filePath,
             JSON.stringify(toObject(map)),
-             e=> {
-                 if(e) {reject(e) ; return ;}
-                 resolve(true);
-             }
+            e => {
+                if (e) { reject(e); return; }
+                resolve(true);
+            }
         );
     })
 
 }
+let isEmpty = (x: string) :boolean => {         
+    return !x || x.replace(/\s+/, '') == '';
+};
 
-export function deserialize<K, V>(json: string): Map<K, V> {
-    if(!json || json.replace(/\b+/,'')) {
-        console.warn('WARNING: empty json'); 
-        return null 
+export function deserialize<K, V>(text: string): Map<K, V> {
+    if (isEmpty(text)) {
+        console.warn('WARNING: empty json');
+        return null
     };
-    return toMap<K>(JSON.parse(json));
+    return toMap<K>(JSON.parse(text));
 }
 
 export function deserializeFromFileSync<K, V>(filePath: string): Map<K, V> {
-    return toMap<K>(JSON.parse(fs.readFileSync(filePath, 'utf-8')));    
+
+    let text = fs.readFileSync(filePath, 'utf-8');
+    
+    if (isEmpty(text)) {
+        console.warn('WARNING: empty json');
+        return null
+    };
+
+    return toMap<K>(JSON.parse(text));
 }
 
 export function deserializeFromFile<K, V>(filePath: string): Promise<Map<K, V>> {

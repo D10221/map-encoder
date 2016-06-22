@@ -1,3 +1,4 @@
+import * as fs from 'fs';
 import * as path from 'path';
 import {assert} from 'chai';
 import * as encoder from "./encoder";
@@ -119,6 +120,7 @@ describe('mapEncoder', () => {
     });
 
     describe('serializetoFile/deserializeFromFile', () => {
+       
         it('works', () => {
             let map = new Map<string, any>();
             map.set('1', 1);
@@ -129,9 +131,15 @@ describe('mapEncoder', () => {
         })
     })
 
-    describe('problems', ()=>{
-        it('returns nothing when file text is empty',()=>{
+    describe('problems', ()=>{     
+        it('returns nothing when file text is empty (async)',()=>{
             let map = encoder.deserialize('');
+            assert.isNull(map);
+        })
+        it('returns null if encoded text is empty (sync)', ()=>{
+            let dbPath = path.join(process.cwd(), 'empty.db');
+            fs.writeFileSync(dbPath,'');
+            let map = encoder.deserializeFromFileSync(dbPath);
             assert.isNull(map);
         })
     })
