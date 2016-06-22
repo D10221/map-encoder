@@ -1,31 +1,28 @@
-
-
+import * as path from 'path';
 import {assert} from 'chai';
-
-import {isObject, toMap, toMaps, fromMap, fromMaps, toObject} from "./encoder";
-
+import * as encoder from "./encoder";
 import * as chain from 'chain';
 
 
-describe('mapEncoder', ()=> {
+describe('mapEncoder', () => {
 
-    describe('ToObject', ()=> {
+    describe('ToObject', () => {
 
-        it('works', ()=> {
+        it('works', () => {
 
-            var map = new Map<string,Map<string,any>>();
+            var map = new Map<string, Map<string, any>>();
 
-            var innerMap = new Map<string,any>();
+            var innerMap = new Map<string, any>();
 
-            innerMap.set('innerKey', {prop: 'x'});
+            innerMap.set('innerKey', { prop: 'x' });
 
             map.set('topKey', innerMap);
 
-            var obj = toObject(map);
+            var obj = encoder.toObject(map);
 
             var json = JSON.stringify(obj);
 
-            var expected = JSON.stringify({topKey: {innerKey: {prop: 'x'}}});
+            var expected = JSON.stringify({ topKey: { innerKey: { prop: 'x' } } });
 
             assert.equal(json, expected);
 
@@ -33,25 +30,25 @@ describe('mapEncoder', ()=> {
 
     });
 
-    describe('isObject', ()=> {
-        it('works', ()=> {
+    describe('isObject', () => {
+        it('works', () => {
 
-            assert.isTrue(isObject({}), '{} isObject');
-            assert.isTrue(isObject(new Thing()), 'class is Object');
-            assert.isFalse(isObject(""), 'string is Object');
-            assert.isFalse(isObject(1), 'number is Object');
+            assert.isTrue(encoder.isObject({}), '{} isObject');
+            assert.isTrue(encoder.isObject(new Thing()), 'class is Object');
+            assert.isFalse(encoder.isObject(""), 'string is Object');
+            assert.isFalse(encoder.isObject(1), 'number is Object');
 
         });
     });
 
-    describe('ToMap', ()=> {
+    describe('ToMap', () => {
 
-        it('works', ()=> {
+        it('works', () => {
 
-            var map:Map<string, Map<string, Map<string, any>>> = null ;
+            var map: Map<string, Map<string, Map<string, any>>> = null;
 
-            profile('ToMap',()=>{
-                map = toMap({topKey: {innerKey: {prop: 'x'}}}) as Map<string,Map<string,Map<string,any>>>;
+            profile('ToMap', () => {
+                map = encoder.toMap({ topKey: { innerKey: { prop: 'x' } } }) as Map<string, Map<string, Map<string, any>>>;
             });
 
             assert.equal(map.get('topKey').get('innerKey').get('prop'), 'x');
@@ -59,24 +56,24 @@ describe('mapEncoder', ()=> {
         });
     });
 
-    describe('ToMaps', ()=> {
+    describe('ToMaps', () => {
 
-        it('works', ()=> {
+        it('works', () => {
 
             var things = [new Thing()];
 
-            var mapped = toMaps(thing=> thing.id, things)
+            var mapped = encoder.toMaps(thing => thing.id, things)
 
             assert.equal(mapped.get(0).get('id'), 0);
         });
     });
-    
-    describe('FromMap', ()=> {
-        it('works', ()=> {
+
+    describe('FromMap', () => {
+        it('works', () => {
             var map = new Map<string, any>();
             map.set('id', 1);
             map.set('xname', 'x');
-            var thing = fromMap(Thing, map);
+            var thing = encoder.fromMap(Thing, map);
             assert.isDefined(thing, 'is there such a thing');
             assert.equal(thing.id, 1, ' id equals ');
             assert.equal(thing.xname, 'x', 'xname equals ');
@@ -84,15 +81,15 @@ describe('mapEncoder', ()=> {
     });
 
 
-    describe('fromMaps', ()=> {
+    describe('fromMaps', () => {
 
-        it('works', ()=> {
+        it('works', () => {
 
-            var expected = [{id: 0, xname: 'x'}, {id: 1, xname: 'y'}];
+            var expected = [{ id: 0, xname: 'x' }, { id: 1, xname: 'y' }];
 
-            var maps:Map<number,Map<string, any>> = toMaps(x=>x.id, expected as Thing[]);
+            var maps: Map<number, Map<string, any>> = encoder.toMaps(x => x.id, expected as Thing[]);
 
-            var things = fromMaps(Thing, maps.values());
+            var things = encoder.fromMaps(Thing, maps.values());
 
             assert.deepEqual(things, expected);
 
@@ -100,20 +97,20 @@ describe('mapEncoder', ()=> {
 
     });
 
-    describe('From Maps To Maps', ()=> {
+    describe('From Maps To Maps', () => {
 
-        it('Works with 100000 recordst', ()=> {
+        it('Works with 100000 recordst', () => {
 
-            var things = generate(0, 100000, x=> new Thing(x, x.toString()));
+            var things = generate(0, 100000, x => new Thing(x, x.toString()));
 
-            var maps:Map<any, Map<string, any>> = null;
-            profile('toMaps: 100,000', ()=>{
-                maps = toMaps<any,Thing>(x=> x.id, things);
+            var maps: Map<any, Map<string, any>> = null;
+            profile('toMaps: 100,000', () => {
+                maps = encoder.toMaps<any, Thing>(x => x.id, things);
             });
 
-            var out:Thing[] = null;
-            profile('fromMaps: 100,000', ()=>{
-                out = fromMaps(Thing, maps.values());
+            var out: Thing[] = null;
+            profile('fromMaps: 100,000', () => {
+                out = encoder.fromMaps(Thing, maps.values());
             });
 
             assert.equal(JSON.stringify(out), JSON.stringify(things))
@@ -121,26 +118,37 @@ describe('mapEncoder', ()=> {
         })
     });
 
+    describe('serializetoFile/deserializeFromFile', () => {
+        it('works', () => {
+            let map = new Map<string, any>();
+            map.set('1', 1);
+            let storePath = path.join(process.cwd(), 'x.db');
+            encoder.serializeToFileSync(storePath, map);
+            let other = encoder.deserializeFromFileSync(storePath);
+            assert.deepEqual(map, other);
+        })
+    })
+
 });
 class Thing {
-    constructor(public id?:number,public xname?:string){
-            this.id = isUndefined(this.id) ? 0 : this.id;
-            this.xname = this.xname || '';        
+    constructor(public id?: number, public xname?: string) {
+        this.id = isUndefined(this.id) ? 0 : this.id;
+        this.xname = this.xname || '';
     }
 }
-function isUndefined(x) : boolean {
-    return 'undefined' == typeof(x);
+function isUndefined(x): boolean {
+    return 'undefined' == typeof (x);
 }
 
-function profile(label:string ,action: (x?:any)=> any ){
+function profile(label: string, action: (x?: any) => any) {
     console.time(label);
     action();
     console.timeEnd(label);
 }
 
-function generate<T>(from:number,to:number, func: (x:number)=> T ): T[] {
-    let results = [] ;
-    for(let i = from ; i<= to; i++){
+function generate<T>(from: number, to: number, func: (x: number) => T): T[] {
+    let results = [];
+    for (let i = from; i <= to; i++) {
         results.push(func(i))
     }
     return results;

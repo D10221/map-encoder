@@ -72,8 +72,7 @@ export function deserialize<K, V>(json: string): Map<K, V> {
 }
 
 export function deserializeFromFileSync<K, V>(filePath: string): Map<K, V> {
-    toMap(JSON.parse(fs.readFileSync(filePath, 'utf-8')));
-    return
+    return toMap<K>(JSON.parse(fs.readFileSync(filePath, 'utf-8')));    
 }
 
 export function deserializeFromFile<K, V>(filePath: string): Promise<Map<K, V>> {
