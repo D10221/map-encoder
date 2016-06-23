@@ -96,9 +96,8 @@ export function deserializeFromFile<K, V>(filePath: string): Promise<Map<K, V>> 
         fs.readFile(filePath, 'utf-8', (err, data) => {
             if (err) {
                 rj(err);
-            }
-            var x = toMap(JSON.parse(data));
-            rs(x);
+            }            
+            rs(toMap<K>(JSON.parse(data)));
         });
     })
 }
