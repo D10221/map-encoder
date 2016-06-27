@@ -86,13 +86,13 @@ describe('mapEncoder', () => {
 
         it('works', () => {
 
-            var expected = [{ id: 0, xname: 'x' }, { id: 1, xname: 'y' }];
+            var expected = [new Thing(0,'x'), new Thing(1, 'y')];
 
             var maps: Map<number, Map<string, any>> = encoder.toMaps(x => x.id, expected as Thing[]);
 
             var things = encoder.fromMaps(Thing, maps.values());
 
-            assert.deepEqual(things, expected);
+            assert.equal(JSON.stringify(things), JSON.stringify(expected));
 
         });
 
@@ -164,11 +164,13 @@ describe('mapEncoder', () => {
     });
 
     describe('problems', () => {
-        it('returns nothing when file text is empty (async)', () => {
+
+        it('returns nothing when text is empty', () => {
             let map = encoder.deserialize('');
             assert.isNull(map);
         })
-        it('returns null if encoded text is empty (sync)', () => {
+
+        it('returns null if encoded file text is empty (sync)', () => {
             let dbPath = path.join(process.cwd(), 'empty.db');
             fs.writeFileSync(dbPath, '');
             let map = encoder.deserializeFromFileSync(dbPath);
@@ -182,13 +184,13 @@ class Thing {
         this.id = isUndefined(this.id) ? 0 : this.id;
         this.xname = this.xname || '';
     }
-    attributes = [ 'x', 'y', 'z']
+   // attributes = [ 'x', 'y', 'z']
 }
 
 interface iThing {
     xname: string;
     id:number ;
-    attributes:any[];
+    //attributes:any[];
 }
 
 function isUndefined(x): boolean {

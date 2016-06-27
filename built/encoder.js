@@ -16,13 +16,17 @@ function isObject(x) {
     return typeof x == 'object';
 }
 exports.isObject = isObject;
-function toMap(obj) {
-    let strMap = new Map();
+/***
+ * if recursive , returns Map<K,Map<K,V>> insteads of Map<K,V>
+ * flattens Objects to maps
+ */
+function toMap(obj, recursive = true) {
+    let map = new Map();
     for (let k of Object.keys(obj)) {
         var value = obj[k];
-        strMap.set(k, isObject(value) ? toMap(value) : value);
+        map.set(k, isObject(value) && recursive ? toMap(value, recursive) : value);
     }
-    return strMap;
+    return map;
 }
 exports.toMap = toMap;
 function serializeMapSync(map) {
@@ -67,24 +71,29 @@ function deserialize(text) {
     return toMap(JSON.parse(text));
 }
 exports.deserialize = deserialize;
-function deserializeFromFileSync(filePath) {
+/***
+ * if recursive , returns nested Maps <Map<K,Map<K,V>>...>
+ */
+function deserializeFromFileSync(filePath, recursive = true) {
     let text = fs.readFileSync(filePath, 'utf-8');
     if (isEmpty(text)) {
         console.warn('WARNING: empty json');
         return null;
     }
     ;
-    return toMap(JSON.parse(text));
+    return toMap(JSON.parse(text), recursive);
 }
 exports.deserializeFromFileSync = deserializeFromFileSync;
-function deserializeFromFile(filePath) {
+/**
+ * Recursive?
+ */
+function deserializeFromFile(filePath, recursive = true) {
     return new Promise((rs, rj) => {
         fs.readFile(filePath, 'utf-8', (err, data) => {
             if (err) {
                 rj(err);
             }
-            var x = toMap(JSON.parse(data));
-            rs(x);
+            rs(toMap(JSON.parse(data), recursive));
         });
     });
 }

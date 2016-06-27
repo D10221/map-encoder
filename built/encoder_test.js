@@ -53,10 +53,10 @@ describe('mapEncoder', () => {
     });
     describe('fromMaps', () => {
         it('works', () => {
-            var expected = [{ id: 0, xname: 'x' }, { id: 1, xname: 'y' }];
+            var expected = [new Thing(0, 'x'), new Thing(1, 'y')];
             var maps = encoder.toMaps(x => x.id, expected);
             var things = encoder.fromMaps(Thing, maps.values());
-            chai_1.assert.deepEqual(things, expected);
+            chai_1.assert.equal(JSON.stringify(things), JSON.stringify(expected));
         });
     });
     describe('From Maps To Maps', () => {
@@ -82,13 +82,44 @@ describe('mapEncoder', () => {
             let other = encoder.deserializeFromFileSync(storePath);
             chai_1.assert.deepEqual(map, other);
         });
+        it('works with Map<X,Object>', () => {
+            let map = new Map();
+            map.set('1', new Thing(1, '1'));
+            let storePath = path.join(process.cwd(), 'x.db');
+            encoder.serializeToFileSync(storePath, map);
+            let other = encoder.deserializeFromFileSync(storePath);
+            let found = null;
+            for (let thing of map.values()) {
+                if (thing.xname == '1') {
+                    found = thing;
+                    break;
+                    ;
+                }
+            }
+            let type = typeof found;
+            chai_1.assert.isTrue('object' == type);
+            chai_1.assert.isNotNull(found);
+            //WRONG they are both MAPs not Objects 
+            chai_1.assert.deepEqual(map, other);
+        });
+    });
+    it('Deserialize Non recursive', () => {
+        let map = new Map();
+        map.set('1', new Thing(1, '1'));
+        let storePath = path.join(process.cwd(), 'x.db');
+        encoder.serializeToFileSync(storePath, map);
+        let other = encoder.deserializeFromFileSync(storePath, false);
+        let value = other.get('1');
+        chai_1.assert.isObject(value);
+        //saved as Objects 
+        //should return Map<S,Thing>
     });
     describe('problems', () => {
-        it('returns nothing when file text is empty (async)', () => {
+        it('returns nothing when text is empty', () => {
             let map = encoder.deserialize('');
             chai_1.assert.isNull(map);
         });
-        it('returns null if encoded text is empty (sync)', () => {
+        it('returns null if encoded file text is empty (sync)', () => {
             let dbPath = path.join(process.cwd(), 'empty.db');
             fs.writeFileSync(dbPath, '');
             let map = encoder.deserializeFromFileSync(dbPath);
