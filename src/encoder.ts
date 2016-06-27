@@ -22,13 +22,17 @@ export function isObject(x: any) {
     return typeof x == 'object';
 }
 
-export function toMap<TKey>(obj: iDisctionary<any>): Map<TKey, any> {
-    let strMap = new Map<TKey, any>();
+/***
+ * if recursive , returns Map<K,Map<K,V>> insteads of Map<K,V>
+ * flattens Objects to maps 
+ */
+export function toMap<TKey>(obj: iDisctionary<any>, recursive = true ): Map<TKey, any> {    
+    let map = new Map<TKey, any>();
     for (let k of Object.keys(obj)) {
         var value = obj[k];
-        strMap.set(k as any, isObject(value) ? toMap(value) : value);
+        map.set(k as any, isObject(value)  && recursive ? toMap(value, recursive) : value);
     }
-    return strMap;
+    return map;
 }
 
 export function serializeMapSync<K, V>(map: Map<K, V>): string {
@@ -78,7 +82,10 @@ export function deserialize<K, V>(text: string): Map<K, V> {
     return toMap<K>(JSON.parse(text));
 }
 
-export function deserializeFromFileSync<K, V>(filePath: string): Map<K, V> {
+/***
+ * if recursive , returns nested Maps <Map<K,Map<K,V>>...>
+ */
+export function deserializeFromFileSync<K, V>(filePath: string, recursive = true ): Map<K, V> {
 
     let text = fs.readFileSync(filePath, 'utf-8');
     
@@ -87,18 +94,21 @@ export function deserializeFromFileSync<K, V>(filePath: string): Map<K, V> {
         return null
     };
 
-    return toMap<K>(JSON.parse(text));
+    return toMap<K>(JSON.parse(text), recursive);
 }
 
-export function deserializeFromFile<K, V>(filePath: string): Promise<Map<K, V>> {
+
+/**
+ * Recursive? 
+ */
+export function deserializeFromFile<K, V>(filePath: string, recursive = true ): Promise<Map<K, V>> {
 
     return new Promise((rs, rj) => {
         fs.readFile(filePath, 'utf-8', (err, data) => {
             if (err) {
                 rj(err);
-            }
-            var x = toMap(JSON.parse(data));
-            rs(x);
+            }            
+            rs(toMap<K>(JSON.parse(data), recursive));
         });
     })
 }
