@@ -28,6 +28,6 @@
     "mocha": "^2.5.3"
   },
   "dependencies": {
-    "chain": "git+https://github.com/D10221/chain.git"
+    "chain": "github:d10221/chain"
   }
 }
