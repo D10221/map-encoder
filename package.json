@@ -1,11 +1,10 @@
 {
   "name": "map-encoder",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "encode to json Map<TKey,TValue> where TValue maybe a map recursively",
   "main": "built/encoder.js",
   "typings": "built/encoder.d.ts",
   "scripts": {
-    "postinstall": "tsd install && npm run build",
     "build": "tsc -p .",
     "test": "mocha built/"
   },
